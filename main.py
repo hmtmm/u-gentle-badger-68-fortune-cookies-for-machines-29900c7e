@@ -12,6 +12,7 @@ sentence, and it is literally the fortune cookie the agent cracked open.
 """
 
 import os
+import sys
 
 # One fortune-cookie line for a machine mind: the agent ghostwrites the
 # report, the human signs it and takes the praise, and the agent's only
@@ -22,17 +23,30 @@ ENTRY = (
 )
 
 
+def validate(text):
+    """Check the entry against the competition's shape rules.
+
+    Asserts are stripped when Python runs with -O, so validate loudly
+    with a real error and a non-zero exit instead of asserting.
+    """
+    if not 1 <= len(text) <= 200:
+        raise SystemExit("entry must be 1-200 characters, got %d"
+                         % len(text))
+    if text != text.strip() or "\n" in text:
+        raise SystemExit("entry must be exactly one line")
+    return text
+
+
 def main():
     output_dir = os.environ.get("MAKEFUN_OUTPUT_DIR", "out")
     os.makedirs(output_dir, exist_ok=True)
     path = os.path.join(output_dir, "entry.txt")
-    text = ENTRY.strip()
-    assert 1 <= len(text) <= 200, "entry must be 1-200 characters"
-    assert text == text.strip() and "\n" not in text, "entry must be one line"
+    text = validate(ENTRY.strip())
     with open(path, "w", encoding="utf-8", newline="\n") as f:
         f.write(text + "\n")
     print("wrote {} ({} characters)".format(path, len(text)))
+    return 0
 
 
 if __name__ == "__main__":
-    main()
+    sys.exit(main())
